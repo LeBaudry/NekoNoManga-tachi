@@ -1,0 +1,32 @@
+import {createBrowserRouter} from "react-router-dom";
+import {Layout} from "../components/pages/layout/Layout.jsx";
+import {Home} from "../components/pages/home/Home.jsx";
+
+import {Login} from "../components/pages/login/Login.jsx";
+import {Library} from "../components/pages/library/Library.jsx";
+import {RequireAuth} from "../components/generics/RequireAuth.jsx";
+
+
+
+
+export const router = createBrowserRouter([
+    {
+        path: "/",
+        element: <RequireAuth><Layout/></RequireAuth> ,
+        children:[
+            {
+                index: true,
+                element: <Home />,
+            },
+            {
+                path: "library",
+                element: <Library />,
+            }
+        ]
+    },
+    {
+        path: "/login",
+        element: <Login/>,
+    }
+
+]);
