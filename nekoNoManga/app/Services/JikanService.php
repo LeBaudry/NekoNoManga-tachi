@@ -21,9 +21,23 @@ class JikanService
     public function listAnime(int $page = 1, int $limit = 25): array
     {
         $res = $this->client->get('anime', [
-            'query' => ['page' => $page, 'limit' => $limit]
+            'query' => ['page' => $page, 'limit' => $limit],
         ]);
-        return json_decode($res->getBody(), true)['data'];
+        $json = json_decode($res->getBody(), true);
+
+        // Jikan v4 : pagination.items contient count, total, per_page
+        $items = $json['pagination']['items'] ?? [];
+
+        return [
+            'data'       => $json['data'] ?? [],
+            'pagination' => [
+                'total'    => $items['total']    ?? null,
+                'count'    => $items['count']    ?? null,
+                'per_page' => $items['per_page'] ?? null,
+                'last_visible_page' => $json['pagination']['last_visible_page'] ?? null,
+                'has_next_page'     => $json['pagination']['has_next_page']     ?? null,
+            ],
+        ];
     }
 
     /**

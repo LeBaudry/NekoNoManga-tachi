@@ -5,6 +5,7 @@ import {Home} from "../components/pages/home/Home.jsx";
 import {Login} from "../components/pages/login/Login.jsx";
 import {Library} from "../components/pages/library/Library.jsx";
 import {RequireAuth} from "../components/generics/RequireAuth.jsx";
+import {Register} from "../components/pages/register/Register.jsx";
 
 
 
@@ -27,6 +28,10 @@ export const router = createBrowserRouter([
     {
         path: "/login",
         element: <Login/>,
-    }
+    },
+    {
+        path: "/register",
+        element: <Register/>,
+    },
 
 ]);

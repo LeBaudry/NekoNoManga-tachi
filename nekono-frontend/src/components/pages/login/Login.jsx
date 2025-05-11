@@ -1,6 +1,6 @@
 import useAuth from "../../../hooks/useAuth.jsx";
 import {useEffect, useState} from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import {Link, Navigate, useNavigate} from "react-router-dom";
 import './login.css'
 
 export function Login() {
@@ -70,6 +70,12 @@ export function Login() {
                         value="connexion"
                     />
                 </form>
+                <div className="login_register">
+                    Pas encore inscrit ?{" "}
+                     <Link to="/register" className="login_register_link">
+                     Inscrivez-vous
+                     </Link>
+                </div>
             </div>
         </div>
     )

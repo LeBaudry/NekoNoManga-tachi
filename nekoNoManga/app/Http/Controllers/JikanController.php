@@ -12,13 +12,21 @@ class JikanController extends Controller
 
     public function list(Request $request)
     {
-        $page  = $request->query('page', 1);
-        $limit = $request->query('limit', 10);
-        $data  = $this->jikan->listAnime($page, $limit);
+        $page  = (int) $request->query('page', 1);
+        $limit = (int) $request->query('limit', 25);
+
+        $result = $this->jikan->listAnime($page, $limit);
+
         return response()->json([
-            'data'       => $data,
-            'page'       => (int)$page,
-            'per_page'   => (int)$limit,
+            'data'       => $result['data'],
+            'pagination' => [
+                'page'              => $page,
+                'per_page'          => $result['pagination']['per_page'],
+                'total'             => $result['pagination']['total'],
+                'count'             => $result['pagination']['count'],
+                'last_visible_page' => $result['pagination']['last_visible_page'],
+                'has_next_page'     => $result['pagination']['has_next_page'],
+            ],
         ]);
     }
 

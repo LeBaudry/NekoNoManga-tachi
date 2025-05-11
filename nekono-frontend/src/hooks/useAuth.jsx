@@ -40,6 +40,26 @@ const useAuth = () => {
     /* *************************************** */
 
 
+
+    const register = async (formData) => {
+        setLoading(true);
+        try {
+            await axios.post("http://localhost:8000/api/register", formData);
+
+            setLoginMessage("Inscription réussie");
+            setLoginErrors(null);
+            return true;
+        } catch (error) {
+            console.error(error);
+            setLoginMessage(null);
+            setLoginErrors("Erreur : échec lors de la connexion");
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
     const getLoggedIn = async (formData) => {
         setLoading(true);
         try {
@@ -80,7 +100,8 @@ const useAuth = () => {
     return {
         user, isAuthenticated, loading, loginErrors, loginMessage,
         getLoggedIn,
-        getLoggedOut
+        getLoggedOut,
+        register,
     };
 };
 
