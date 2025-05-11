@@ -26,7 +26,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post ('library/animes',            [LibraryController::class, 'store']);
     Route::delete('library/animes/{anime}',   [LibraryController::class, 'destroy']);
 
-    Route::apiResource('animes', AnimeController::class);
+    Route::get('animes/jikan/{malId}', [AnimeController::class, 'showByMalId']);
+
+    Route::apiResource('animes', AnimeController::class)
+    ->except(['show']);
     Route::post('animes/{anime}/episodes/{episode}/toggle', [EpisodeController::class, 'toggleVu']);
     Route::get('animes/{anime}/progression', [AnimeController::class, 'progression']);
 });

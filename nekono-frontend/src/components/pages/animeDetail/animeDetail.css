@@ -1,0 +1,101 @@
+/* animeDetail.css */
+
+/* Conteneur global */
+.anime-detail {
+    max-width: 960px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    color: #eee;
+}
+
+/* En-tête avec image + infos */
+.anime-header {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.anime-header img {
+    flex-shrink: 0;
+    width: 200px;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+}
+
+.anime-header > div {
+    flex: 1;
+}
+
+.anime-header h1 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 2rem;
+    color: #fff;
+}
+
+.anime-header p {
+    margin: 0.5rem 0;
+    line-height: 1.4;
+    color: #ccc;
+}
+
+/* Section épisodes */
+.episodes-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+
+.episode {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #2b2b2b;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+.episode span {
+    font-size: 0.95rem;
+    color: #eee;
+}
+
+/* Boutons de toggle */
+.episode button {
+    background: none;
+    border: 1px solid #888;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: #eee;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.episode button:hover {
+    background: #444;
+    border-color: #aaa;
+}
+
+/* État "vu" */
+.episode button.seen {
+    background: #4caf50;
+    border-color: #4caf50;
+    color: #fff;
+}
+
+.episode button.seen:hover {
+    background: #66bb6a;
+    border-color: #66bb6a;
+}
+
+/* Message pour les films (pas d’épisodes) */
+.no-episodes {
+    text-align: center;
+    font-style: italic;
+    color: #bbb;
+    margin-top: 2rem;
+}

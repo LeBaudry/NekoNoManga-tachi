@@ -50,6 +50,7 @@ class User extends Authenticatable
     public function animes()
     {
         return $this->belongsToMany(Anime::class, 'user_anime')
+            ->withPivot('id', 'created_at', 'updated_at')
             ->withTimestamps();
     }
 

@@ -31,4 +31,10 @@ class Anime extends Model
         return $this->belongsToMany(Episode::class, 'user_episode')
             ->withTimestamps();
     }
+
+    public function getRouteKeyName()
+    {
+        return 'mal_id';
+    }
+
 }

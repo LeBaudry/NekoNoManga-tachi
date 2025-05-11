@@ -38,12 +38,12 @@ class AnimeController extends Controller
      */
     public function store(Request $request)
     {
-        // 1) on ne valide que le mal_id
+
         $validated = $request->validate([
             'mal_id' => 'required|integer|unique:animes,mal_id',
         ]);
 
-        // 2) on délègue tout à AnimeService (attachToUser = false)
+
         $anime = $this->animeService->syncFromJikan(
             $validated['mal_id'],
             false
@@ -59,9 +59,84 @@ class AnimeController extends Controller
     /**
      * GET /animes/{anime}
      */
-    public function show(Anime $anime)
+    public function show(Request $request, int $malId)
     {
-        return response()->json($anime->load('episodes'));
+        // On cherche d'abord en base
+        $anime = Anime::with('episodes')
+            ->where('mal_id', $malId)
+            ->first();
+
+        if ($anime) {
+            // S’il n’a pas d’épisodes en base, on les sync
+            if ($anime->episodes()->count() === 0) {
+                $this->syncFromJikan($anime);
+            }
+            return response()->json($anime, 200);
+        }
+
+        // Sinon on récupère depuis Jikan **sans persister**
+        $info     = $this->jikan->getAnime($malId);
+        $episodes = $this->jikan->getEpisodes($malId);
+
+        // On renvoie juste les données, sans toucher à la base
+        return response()->json([
+            'mal_id'    => $info['mal_id'],
+            'titre'     => $info['title'],
+            'synopsis'  => $info['synopsis'] ?? null,
+            'image_url' => $info['images']['jpg']['image_url'] ?? null,
+            'episodes'  => array_map(fn($ep) => [
+                'numero'    => $ep['episode'] ?? $ep['mal_id'],
+                'mal_id'    => $ep['mal_id'],
+                'titre'     => $ep['title'],
+                'synopsis'  => $ep['synopsis'] ?? null,
+                'air_date'  => $ep['aired']['from'] ?? null,
+                // pas de pivot ici, ce n'est pas en base
+            ], $episodes),
+        ], 200);
+    }
+
+    public function showByMalId(Request $request, int $malId)
+    {
+        // 1. Récupère ou stub
+        $anime = Anime::firstOrNew(['mal_id' => $malId]);
+
+        // 2. Si n’existe pas, on sync intégralement
+        if (! $anime->exists) {
+            $anime = $this->animeService->syncFromJikan($malId,false);
+        }
+        // 3. S’il existe mais sans épisodes, on sync les épisodes seulement
+        elseif ($anime->episodes()->count() === 0) {
+            $this->syncFromJikan($anime);
+        }
+
+        return response()->json($anime->load('episodes'), 200);
+    }
+
+    protected function syncFromJikan(Anime $anime)
+    {
+        // 1) Récupère les données complètes d’un coup
+        $info     = $this->jikan->getAnime($anime->mal_id);
+        $episodes = $this->jikan->getEpisodes($anime->mal_id);
+
+        // 2) Met à jour l’anime en base (titre, synopsis, image…)
+        $anime->update([
+            'titre'     => $info['title'],
+            'synopsis'  => $info['synopsis'] ?? null,
+            'image_url' => $info['images']['jpg']['image_url'] ?? null,
+        ]);
+
+        // 3) Sync des épisodes
+        foreach ($episodes as $ep) {
+            $anime->episodes()->updateOrCreate(
+                ['numero' => $ep['episode'] ?? $ep['mal_id']],
+                [
+                    'mal_id'    => $ep['mal_id'],
+                    'titre'     => $ep['title'],
+                    'synopsis'  => $ep['synopsis'] ?? null,
+                    'air_date'  => $ep['aired']['from'] ?? null,
+                ]
+            );
+        }
     }
 
     /**

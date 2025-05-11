@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import useManga from "../../../hooks/useManga.jsx";
 import "./home.css";
+import {useNavigate} from "react-router-dom";
 
 export function Home() {
     const [query, setQuery] = useState("");
@@ -13,6 +14,7 @@ export function Home() {
         searchMangas,
     } = useManga();
 
+    const navigate = useNavigate();
 
     useEffect(() => {
         getMangas();
@@ -41,7 +43,8 @@ export function Home() {
 
             <div className="cards">
                 {mangas.map(anime => (
-                    <div key={anime.mal_id} className="card">
+                    <div key={anime.mal_id} className="card" onDoubleClick={() => navigate(`/anime/${anime.mal_id}`)}  // ← DOUBLE-CLICK
+                         style={{ cursor: "pointer" }}>
                         <img className="card__img"
                              src={anime.images.jpg.image_url}
                              alt={anime.title} />
