@@ -20,9 +20,19 @@ export function AnimeDetail() {
             <header className="anime-header">
                 <img src={anime.image_url} alt={anime.title} />
                 <div>
-                    <h1>{anime.title}</h1>
+                    <h1>{anime.titre}</h1>
                     <p>{anime.synopsis}</p>
-                    <p>Progression : {progress.seen_episodes}/{progress.total_episodes}</p>
+                    <div className="progress-container">
+                        <div
+                            className="progress-bar__fill"
+                            style={{
+                                width: `${Math.round((progress.seen_episodes / progress.total_episodes) * 100)}%`
+                            }}
+                        />
+                    </div>
+                    <p className="progress-label">
+                        {progress.seen_episodes} / {progress.total_episodes} épisodes vus
+                    </p>
                     <button
                         onClick={() =>
                             inLibrary

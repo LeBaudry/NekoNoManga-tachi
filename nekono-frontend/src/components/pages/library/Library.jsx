@@ -6,15 +6,8 @@ import "./library.css";
 
 export function Library() {
     const navigate = useNavigate();
-    const {
-        library,
-        loading,
-        error,
-        removeAnime,
-        refresh
-    } = useLibrary();
+    const { library, loading, error, removeAnime, refresh } = useLibrary();
 
-    // Au montage on charge la bibliothèque
     useEffect(() => {
         refresh();
     }, [refresh]);
@@ -28,31 +21,38 @@ export function Library() {
                 <p>Votre bibliothèque est vide.</p>
             ) : (
                 <div className="cards">
-                    {library.map(anime => (
-                        <div
-                            key={anime.mal_id}
-                            className="card"
-                            onDoubleClick={() => navigate(`/anime/${anime.mal_id}`)}
-                        >
-                            <img
-                                className="card__img"
-                                src={anime.image_url}
-                                alt={anime.titre}
-                            />
-                            <div className="card__body">
-                                <h3 className="card__title">{anime.titre}</h3>
-                                <button
-                                    className="remove-button"
-                                    onClick={e => {
-                                        e.stopPropagation();
-                                        removeAnime(anime.mal_id);
-                                    }}
-                                >
-                                    Retirer
-                                </button>
+                    {library.map(anime => {
+                        const { seen_episodes, total_episodes } = anime.progress;
+                        const pct = total_episodes
+                            ? Math.round((seen_episodes / total_episodes) * 100)
+                            : 0;
+
+                        return (
+                            <div
+                                key={anime.mal_id}
+                                className="card"
+                                onDoubleClick={() => navigate(`/anime/${anime.mal_id}`)}
+                            >
+                                <img
+                                    className="card__img"
+                                    src={anime.image_url}
+                                    alt={anime.titre}
+                                />
+                                <div className="card__body">
+                                    <h3 className="card__title">{anime.titre}</h3>
+
+                                    {/* barre de progression */}
+                                    <div className="progress-container">
+                                        <div
+                                            className="progress-bar"
+
+                                        />
+                                    </div>
+                                    <small>{seen_episodes} / {total_episodes} épisodes vus</small>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </>

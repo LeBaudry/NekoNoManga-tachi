@@ -66,7 +66,25 @@ class JikanService
      */
     public function getEpisodes(int $malId): array
     {
-        $res = $this->client->get("anime/{$malId}/episodes");
-        return json_decode($res->getBody(), true)['data'];
+        $all   = [];
+        $page  = 1;
+        $limit = 100;
+
+        do {
+            $res = $this->client->get("anime/{$malId}/episodes", [
+                'query' => ['page' => $page, 'limit' => $limit],
+            ]);
+
+            $json    = json_decode($res->getBody(), true);
+            $data    = $json['data'] ?? [];
+            $all     = array_merge($all, $data);
+
+            // Jikan v4 renvoie un bloc pagination.has_next_page
+            $hasNext = $json['pagination']['has_next_page'] ?? false;
+            $page++;
+            sleep(10);
+        } while ($hasNext);
+
+        return $all;
     }
 }

@@ -16,9 +16,27 @@ export default function useLibrary() {
     const fetchLibrary = useCallback(async () => {
         setLoading(true);
         setError(null);
+
         try {
+            // 1) liste des animes
             const res = await axios.get(`http://localhost:8000/api/library/animes`, { headers });
-            setLibrary(res.data);
+            const animes = res.data;
+
+            // 2) on récupère la progression de chacun en parallèle
+            const withProgress = await Promise.all(
+                animes.map(async anime => {
+                    const prog = await axios.get(
+                        `http://localhost:8000/api/animes/${anime.mal_id}/progression`,
+                        { headers }
+                    );
+                    return {
+                        ...anime,
+                        progress: prog.data, // { seen_episodes, total_episodes }
+                    };
+                })
+            );
+
+            setLibrary(withProgress);
         } catch (err) {
             console.error(err);
             setError("Impossible de récupérer votre bibliothèque");

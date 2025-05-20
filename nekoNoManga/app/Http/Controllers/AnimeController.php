@@ -68,7 +68,7 @@ class AnimeController extends Controller
 
         if ($anime) {
             // S’il n’a pas d’épisodes en base, on les sync
-            if ($anime->episodes()->count() === 0) {
+            if ($anime->getepisodes()->count() === 0) {
                 $this->syncFromJikan($anime);
             }
             return response()->json($anime, 200);

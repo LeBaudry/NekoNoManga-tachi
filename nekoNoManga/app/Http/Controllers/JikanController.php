@@ -41,7 +41,9 @@ class JikanController extends Controller
     public function episodes(int $malId)
     {
         return response()->json(
-            $this->jikan->getAnimeEpisodes($malId)
+            $this->jikan->getEpisodes($malId)
         );
     }
+
+
 }
