@@ -42,12 +42,10 @@ export function Library() {
                                     <h3 className="card__title">{anime.titre}</h3>
 
                                     {/* barre de progression */}
-                                    <div className="progress-container">
-                                        <div
-                                            className="progress-bar"
-
-                                        />
-                                    </div>
+                                    <div
+                                        className="progress-bar"
+                                        style={{ width: `${pct}%` }}
+                                    />
                                     <small>{seen_episodes} / {total_episodes} épisodes vus</small>
                                 </div>
                             </div>

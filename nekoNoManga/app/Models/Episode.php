@@ -18,4 +18,10 @@ class Episode extends Model
     {
         return $this->belongsTo(Anime::class);
     }
+
+    public function vuPar()
+    {
+        return $this->belongsToMany(User::class, 'user_episode')->withPivot('vu_le');
+    }
+
 }

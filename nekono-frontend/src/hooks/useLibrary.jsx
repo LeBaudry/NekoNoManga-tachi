@@ -26,7 +26,7 @@ export default function useLibrary() {
             const withProgress = await Promise.all(
                 animes.map(async anime => {
                     const prog = await axios.get(
-                        `http://localhost:8000/api/animes/${anime.mal_id}/progression`,
+                        `http://localhost:8000/api/animes/${anime.id}/progression`,
                         { headers }
                     );
                     return {

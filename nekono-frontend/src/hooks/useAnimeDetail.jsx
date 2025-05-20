@@ -17,25 +17,30 @@ const useAnimeDetail = (animeId) => {
         setError(null);
 
         try {
-            const [aRes, pRes] = await Promise.all([
-                // → DETAIL via MAL ID
-                axios.get(`http://localhost:8000/api/animes/jikan/${animeId}`, {
-                    headers: authHeader
-                }),
-                // → Progression (ID interne) si déjà en base
-                axios.get(`http://localhost:8000/api/animes/${animeId}/progression`, {
-                    headers: authHeader
-                })
-            ]);
-
-            setAnime({
-                ...aRes.data,
-                episodes: Array.isArray(aRes.data.episodes)
-                    ? aRes.data.episodes
-                    : []
+            // 1) On récupère l'anime via MAL ID (public)
+            const aRes = await axios.get(`http://localhost:8000/api/animes/jikan/${animeId}`, {
+                headers: authHeader
             });
-            setProgress(pRes.data || { seen_episodes: 0, total_episodes: 0 });
-        } catch {
+
+            const loadedAnime = {
+                ...aRes.data,
+                episodes: Array.isArray(aRes.data.episodes) ? aRes.data.episodes : []
+            };
+            setAnime(loadedAnime);
+
+            // 2) Si l'anime existe en base, on récupère la progression (private)
+            if (loadedAnime.id) {
+                const pRes = await axios.get(
+                    `http://localhost:8000/api/animes/${loadedAnime.id}/progression`,
+                    { headers: authHeader }
+                );
+                setProgress(pRes.data || { seen_episodes: 0, total_episodes: 0 });
+            } else {
+                setProgress({ seen_episodes: 0, total_episodes: 0 });
+            }
+
+        } catch (err) {
+            console.error(err);
             setError("Impossible de charger l'anime");
         } finally {
             setLoading(false);
@@ -47,24 +52,39 @@ const useAnimeDetail = (animeId) => {
         getDetail();
     }, [getDetail]);
 
-    const toggleVu = async (episodeId) => {
+    const toggleVu = async (episodeNumero) => {
         try {
-            // 1) On s'assure que l'anime est bien dans la bibliothèque :
+            // 1) On fait la requête de toggle sur le backend
             await axios.post(
-                "http://localhost:8000/api/library/animes",
-                { mal_id: anime.mal_id },  // on passe le mal_id côté back
-                { headers: authHeader }
-            );
-
-            // 2) Puis on toggle l'épisode
-            await axios.post(
-                `http://localhost:8000/api/animes/${animeId}/episodes/${episodeId}/toggle`,
+                `http://localhost:8000/api/animes/${anime.id}/episodes/${episodeNumero}/toggle`,
                 {},
                 { headers: authHeader }
             );
 
-            // 3) On recharge les données
-            await getDetail();
+            // 2) Mise à jour locale optimiste
+            setAnime(prev => {
+                const updatedEpisodes = prev.episodes.map(ep => {
+                    if (ep.numero === episodeNumero) {
+                        const wasWatched = !!ep.pivot?.watched_at;
+
+                        return {
+                            ...ep,
+                            pivot: wasWatched
+                                ? undefined
+                                : { watched_at: new Date().toISOString() }
+                        };
+                    }
+                    return ep;
+                });
+
+                // recalcul du progrès
+                const total = updatedEpisodes.length;
+                const seen = updatedEpisodes.filter(ep => ep.pivot?.watched_at).length;
+
+                setProgress({ total_episodes: total, seen_episodes: seen });
+
+                return { ...prev, episodes: updatedEpisodes };
+            });
         } catch (err) {
             console.error("Toggle error", err);
             setError("Impossible de marquer l'épisode");

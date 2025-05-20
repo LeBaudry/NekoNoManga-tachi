@@ -26,7 +26,7 @@ return [
     'allowed_methods' => ['*'],
 
     // Origines autorisées (ajoute ici l’URL où tourne ton front)
-    'allowed_origins' => ['http://localhost:5175'],
+    'allowed_origins' => ['*'],
 
     // En-têtes autorisés
     'allowed_headers' => ['*'],

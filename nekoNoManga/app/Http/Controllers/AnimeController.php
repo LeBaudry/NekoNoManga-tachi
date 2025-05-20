@@ -97,19 +97,44 @@ class AnimeController extends Controller
 
     public function showByMalId(Request $request, int $malId)
     {
-        // 1. Récupère ou stub
-        $anime = Anime::firstOrNew(['mal_id' => $malId]);
+        try {
+            $user = $request->user();
 
-        // 2. Si n’existe pas, on sync intégralement
-        if (! $anime->exists) {
-            $anime = $this->animeService->syncFromJikan($malId,false);
-        }
-        // 3. S’il existe mais sans épisodes, on sync les épisodes seulement
-        elseif ($anime->episodes()->count() === 0) {
-            $this->syncFromJikan($anime);
-        }
+            $anime = Anime::firstOrNew(['mal_id' => $malId]);
 
-        return response()->json($anime->load('episodes'), 200);
+            if (! $anime->exists) {
+                $anime = $this->animeService->syncFromJikan($malId, false);
+            } elseif ($anime->episodes()->count() === 0) {
+                $this->syncFromJikan($anime);
+            }
+
+            $anime->load([
+                'episodes' => function ($q) use ($user) {
+                    $q->with(['vuPar' => function ($q2) use ($user) {
+                        $q2->where('user_id', $user->id);
+                    }]);
+                }
+            ]);
+
+            $anime->episodes->transform(function ($ep) {
+                $vu = $ep->vuPar->first();
+                if ($vu && $vu->pivot && isset($vu->pivot->vu_le)) {
+                    $ep->pivot = (object)['watched_at' => $vu->pivot->vu_le];
+                } else {
+                    $ep->pivot = null;
+                }
+                unset($ep->vuPar);
+                return $ep;
+            });
+
+            return response()->json($anime, 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Erreur serveur',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ], 500);
+        }
     }
 
     protected function syncFromJikan(Anime $anime)
@@ -167,18 +192,24 @@ class AnimeController extends Controller
     /**
      * GET /animes/{anime}/progression
      */
-    public function progression(Request $request, Anime $anime)
+    public function progression(Request $request, int $animeId)
     {
+        $anime = Anime::find($animeId);
+
+        if (! $anime) {
+            return response()->json(['message' => 'Anime non trouvé'], 404);
+        }
+
         $total = $anime->episodes()->count();
-        $seen  = $request->user()
+        $seen = $request->user()
             ->episodesVu()
             ->where('anime_id', $anime->id)
             ->count();
 
         return response()->json([
-            'anime_id'       => $anime->id,
+            'anime_id' => $anime->id,
             'total_episodes' => $total,
-            'seen_episodes'  => $seen,
+            'seen_episodes' => $seen,
         ]);
     }
 }

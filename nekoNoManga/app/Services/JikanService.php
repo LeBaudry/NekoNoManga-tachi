@@ -82,7 +82,6 @@ class JikanService
             // Jikan v4 renvoie un bloc pagination.has_next_page
             $hasNext = $json['pagination']['has_next_page'] ?? false;
             $page++;
-            sleep(10);
         } while ($hasNext);
 
         return $all;

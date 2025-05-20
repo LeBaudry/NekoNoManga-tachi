@@ -53,7 +53,7 @@ export function AnimeDetail() {
                             <div key={ep.id} className="episode">
                                 <span>Épisode {ep.numero} — {ep.titre}</span>
                             <button
-                                onClick={() => toggleVu(ep.id)}
+                                onClick={() => toggleVu(ep.numero)}
                                 className={ep.pivot?.watched_at ? "seen" : ""}
                             >
                                 {ep.pivot?.watched_at ? "Vu ✅" : "Marquer lu"}

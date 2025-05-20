@@ -37,26 +37,42 @@ class LibraryController extends Controller
             'mal_id' => 'required|integer',
         ]);
 
-        // 1) synchronise l'anime + épisodes en base, et l'attache à l'user
-        $anime = $this->animeService->syncFromJikan(
-            $validated['mal_id'],
-            true  // true = on attache aussi à l'utilisateur
-        );
+        $user = $request->user();
+
+        // Vérifie si l'anime est déjà en base
+        $anime = Anime::where('mal_id', $validated['mal_id'])->first();
+
+        if (!$anime) {
+            // Pas trouvé en DB → on appelle Jikan pour créer + stocker
+            $anime = $this->animeService->syncFromJikan($validated['mal_id'], false); // false = pas encore attaché
+        }
+
+        // Vérifie s'il est déjà attaché à l'utilisateur
+        $alreadyInLibrary = $user->animes()->where('anime_id', $anime->id)->exists();
+
+        if (!$alreadyInLibrary) {
+            $user->animes()->attach($anime->id);
+        }
 
         return response()->json([
-            'message' => 'Ajouté à votre bibliothèque',
+            'message' => $alreadyInLibrary ? 'Déjà présent dans votre bibliothèque' : 'Ajouté à votre bibliothèque',
             'anime'   => $anime->load('episodes'),
-        ], 201);
+        ], $alreadyInLibrary ? 200 : 201);
     }
+
 
     /**
      * Supprime un anime de la bibliothèque de l'utilisateur.
      */
-    public function destroy(Request $request, Anime $anime)
+    public function destroy(Request $request, $id)
     {
-        $request->user()
-            ->animes()       // ou library()
-            ->detach($anime->id);
+        $anime = Anime::find($id);
+
+        if (!$anime) {
+            return response()->json(['message' => 'Anime introuvable'], 404);
+        }
+
+        $request->user()->animes()->detach($anime->id);
 
         return response()->json(['message' => 'Supprimé de votre bibliothèque']);
     }

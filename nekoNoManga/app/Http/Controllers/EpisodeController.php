@@ -9,10 +9,14 @@ use App\Models\Episode;
 
 class EpisodeController extends Controller
 {
-    public function toggleVu(Request $request, Anime $anime, Episode $episode)
+    public function toggleVu(Request $request, $animeId, $numero)
     {
-        // 1) on vérifie que l’épisode appartient bien à l’anime
-        if ($episode->anime_id !== $anime->id) {
+        $anime = Anime::findOrFail($animeId);
+
+        // On récupère l’épisode correspondant au numero et à l’anime
+        $episode = $anime->episodes()->where('numero', $numero)->first();
+
+        if (! $episode) {
             return response()->json(['message' => 'Épisode non trouvé pour cet anime'], 404);
         }
 
@@ -27,10 +31,10 @@ class EpisodeController extends Controller
         }
 
         return response()->json([
-            'message'     => "Épisode {$action} avec succès.",
-            'episode_id'  => $episode->id,
-            'anime_id'    => $anime->id,
-            'watched'     => $action === 'attaché',
+            'message'    => "Épisode {$action} avec succès.",
+            'episode_id' => $episode->id,
+            'anime_id'   => $anime->id,
+            'watched'    => $action === 'attaché',
         ]);
     }
 }
